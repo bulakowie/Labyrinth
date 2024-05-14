@@ -122,10 +122,12 @@ public class C
 public class MapEngine
 {
     private Level map;
+    private Player player;
     private C expectedPosition;
     private int movedTile;
     public void newLevel(Level a) { this.map = a; }
     public Level getMap() { return map; }
+    public void grabPlayer(Player player) { this.player = player; }
     public void printMap()
     {
         Console.WriteLine("Poziom:" + map.numerPoziomu.ToString());
@@ -181,7 +183,8 @@ public class MapEngine
                 }
         }
         if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-        if (map.level_layout[expectedPosition.x, expectedPosition.y] == 0 || map.level_layout[expectedPosition.x, expectedPosition.y] == 2 || map.level_layout[expectedPosition.x, expectedPosition.y] == 6) return true;
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] > 99) return player.doorCheck(map.level_layout[expectedPosition.x, expectedPosition.y], 0);
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
         else return false;
         return true;
     }
@@ -228,7 +231,7 @@ public class Player
     public C position;
     private int health;
     private int score;
-   
+    public int keyHolder = 0;
     public Player (int health, int score)
     {
         this.health = health;
@@ -236,6 +239,7 @@ public class Player
     }
     public int getHealth() {  return health; }
     public int getScore() { return score; }
+    public int getKeys() {  return keyHolder; }
     public C getPosition() { return position; }
     public bool isAlive ()
     {
@@ -245,10 +249,28 @@ public class Player
     public void printStats ()
     {
         Console.WriteLine("Zdrowie: " +  this.health + " Wynik: " + this.score);
+        Console.WriteLine("Posiadane klucze:" + this.keyHolder);
     }
     public void damage() { health--; }
     public void treasure() { score++; }
     
+    public void collectKey(int a)
+    {
+        keyHolder *= 100;
+        keyHolder += a;
+    }
+    public bool doorCheck( int a, int g)
+    {
+        
+        a = a % 100;
+        g = getKeys();
+        while (g > 0)
+        {
+            if (g % 100 == a) return true;
+            else g = g - (g%100);
+        }
+        return false;
+    }
 }
 
 public class Controller
@@ -275,6 +297,7 @@ public class Controller
                 engine.newLevel(manager.newGame());
                 player = new Player(5, 0);
                 player.position = new C(engine.searchPlayer());
+                engine.grabPlayer(player);
                 break;
             }
             else if (odpowiedz == "Wczytaj")
@@ -282,6 +305,7 @@ public class Controller
                 engine.newLevel(manager.loadGame());
                 player = new Player(manager.loadPlayerHealth(), manager.loadPlayerScore());
                 player.position = new C(engine.searchPlayer());
+                engine.grabPlayer(player);
                 break;
             }
         }
@@ -359,6 +383,13 @@ public class Controller
             if (engine.moveTile() == 6)
             {
                 if (guard ==1) player.treasure();
+            }
+            if (engine.moveTile() < 100 && engine.moveTile() > 9)
+            {
+                if (guard ==1)
+                {
+                    player.collectKey(engine.moveTile());
+                }
             }
             Console.Clear();
         }

@@ -122,9 +122,22 @@ public class MapEngine
 {
     private Level map;
     private Player player;
+    private MonsterManager monsters;
     private C expectedPosition;
     private int movedTile;
-    public void newLevel(Level a) { this.map = a; }
+    public void newLevel(Level a)
+    {
+        int numberOfMonsters = 0;
+        this.map = a;
+        for ( int i=0; i<map.rozmiarX; i++)
+        {
+            for (int j=0; j<map.rozmiarY; j++)
+            {
+                if (map.level_layout[i, j] == 5) numberOfMonsters++; 
+            }
+        }
+        if (numberOfMonsters > 0) { monsters = new MonsterManager(map, numberOfMonsters); }
+    }
     public Level getMap() { return map; }
     public void grabPlayer(Player player) { this.player = player; }
     public void printMap()
@@ -194,7 +207,41 @@ public class MapEngine
         else return false;
         return true;
     }
-    public void playerMove(C position, char direction) //tutaj tez beda wszystkie sprawdzacze czy dzieja sie jakies edekty specjalne zrobie to niedlugo xoxo
+    public bool isMoveLegalMonsterEdition(C position, char direction)
+    {
+
+        switch (direction)
+        {
+            case 'd':
+                {
+                    expectedPosition = new C(position.x, position.y + 1);
+
+                    break;
+                }
+            case 'g':
+                {
+                    expectedPosition = new C(position.x, position.y - 1);
+
+                    break;
+                }
+            case 'l':
+                {
+                    expectedPosition = new C(position.x - 1, position.y);
+
+                    break;
+                }
+            case 'p':
+                {
+                    expectedPosition = new C(position.x + 1, position.y);
+
+                    break;
+                }
+        }
+        if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] == 0) return true;
+        else return false;
+    }
+    public void playerMove(C position, char direction) 
     {
         switch (direction)
         {
@@ -232,11 +279,38 @@ public class MapEngine
     }
 
 }
+public class MonsterManager
+{
+    private C[] listOfMonsters; 
+    private int numberOfMonsters;
+    public MonsterManager (Level level,int n)
+    {
+        listOfMonsters = new C[n];
+        numberOfMonsters = n;
+        int g = 0;
+        for (int i = 0; i < level.rozmiarX; i++)
+        {
+            for (int j = 0; j < level.rozmiarY; j++)
+            {
+                if (level.level_layout[i, j] == 5)
+                {
+                    listOfMonsters[g] = new C(i, j);
+                    g++;
+                }
+            }
+        }
+        Console.WriteLine(listOfMonsters[0].x + " " + listOfMonsters[0].y);
+        Console.ReadLine();
+    }
+    
+}
 public class Player
 {
     public C position;
     private int health;
     private int score;
+    private bool protection;
+    private bool power;
     public int keyHolder = 0;
     public Player (int health, int score)
     {
@@ -244,9 +318,16 @@ public class Player
         this.score = score;
     }
     public int getHealth() {  return health; }
+    public void heal() { this.health = 5; }
     public int getScore() { return score; }
     public int getKeys() {  return keyHolder; }
     public C getPosition() { return position; }
+    public void protectionPotionOn() { protection = true; }
+    public void powerPotionOn() { power = true; }
+    public void PotionOff() { protection = false; power = false; }
+    public bool isProtected() { return protection; }
+    public bool isPowerful() { return power; }
+    public void printStatus() { if (protection == true) { Console.WriteLine("Gracz jest nieśmiertelny!"); } if (power == true) Console.WriteLine("Gracz jest potężny!"); }
     public bool isAlive ()
     {
         if (this.health > 0) return true;
@@ -288,6 +369,7 @@ public class Controller
     private MapEngine engine;
     private Player player;
     private int guard;
+    private int potionTimer;
     public Controller (SaveManager manager, MapEngine engine, Player player)
     {
         this.manager = manager;
@@ -323,9 +405,14 @@ public class Controller
     {
         while (player.isAlive())
         {
-            
+            if (potionTimer > 0) potionTimer--;
+            if (potionTimer == 0)
+            {
+                player.PotionOff();
+            }
             engine.printMap();
             player.printStats();
+            player.printStatus();
             string input = Console.ReadLine();
             switch (input)
             {
@@ -385,13 +472,44 @@ public class Controller
                 engine.newLevel(manager.nextLevel(engine.getMap().numerPoziomu));
                 player.position = engine.searchPlayer();
             }
+            if (engine.moveTile() == 5)
+            {
+                if (guard==1 && player.isPowerful() == false)
+                {
+                    player.damage();
+                    player.damage();
+                    player.damage();
+                    player.damage();
+                    player.damage();
+                }
+            }
             if (engine.moveTile() == 2)
             {
-                if (guard == 1) player.damage();
+                if (guard == 1 && player.isProtected() == false) player.damage();
             }
             if (engine.moveTile() == 6)
             {
                 if (guard ==1) player.treasure();
+            }
+            if (engine.moveTile() == 7)
+            {
+                if (guard == 1) player.heal();
+            }
+            if (engine.moveTile() == 8)
+            {
+                if (guard == 1)
+                {
+                    player.protectionPotionOn();
+                    potionTimer += 10;
+                }
+            }
+            if (engine.moveTile() == 9)
+            {
+                if (guard == 1)
+                {
+                    player.powerPotionOn();
+                    potionTimer += 10;
+                }
             }
             if (engine.moveTile() < 100 && engine.moveTile() > 9)
             {
@@ -418,3 +536,4 @@ class Man
 
     }
 }
+    

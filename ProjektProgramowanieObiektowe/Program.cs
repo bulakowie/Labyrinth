@@ -5,7 +5,6 @@ using System.ComponentModel.Design;
 using static System.Formats.Asn1.AsnWriter;
 using System.Security.Cryptography.X509Certificates;
 using System.Globalization;
-
 public class Level
 {
     public int[,] level_layout;
@@ -183,7 +182,14 @@ public class MapEngine
                 }
         }
         if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-        if (map.level_layout[expectedPosition.x, expectedPosition.y] > 99) return player.doorCheck(map.level_layout[expectedPosition.x, expectedPosition.y], 0);
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] > 99 && map.level_layout[expectedPosition.x, expectedPosition.y] <200) return player.doorCheck(map.level_layout[expectedPosition.x, expectedPosition.y], 0);
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] > 200)
+        {
+            for (int i = 0; i < map.rozmiarX; i++)
+                for (int j = 0; j < map.rozmiarY; j++)
+                    if (map.level_layout[i, j] == map.level_layout[expectedPosition.x, expectedPosition.y] - 100) map.level_layout[i, j] = 0;
+            return false;
+        }
         if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
         else return false;
         return true;
@@ -267,12 +273,15 @@ public class Player
         while (g > 0)
         {
             if (g % 100 == a) return true;
-            else g = g - (g%100);
+            else
+            {
+                g = g - (g % 100);
+                g /= 100;
+            }
         }
         return false;
     }
 }
-
 public class Controller
 {
     private SaveManager manager;

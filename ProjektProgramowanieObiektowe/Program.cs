@@ -29,7 +29,11 @@ public class SaveManager
         for (int i = 1; i <= numberOfLevels; i++)
         {
             string s = "level" + i.ToString() + ".txt";
-            string[] textLines = File.ReadAllLines("C:\\files\\" + s);
+            string folderPath = AppDomain.CurrentDomain.BaseDirectory;
+            Console.WriteLine(folderPath);
+            Console.WriteLine(folderPath);
+            Console.WriteLine(folderPath);
+            string[] textLines = File.ReadAllLines(folderPath + s);
             listOfLevels[i] = new Level(Int32.Parse(textLines[0]), Int32.Parse(textLines[1]), Int32.Parse(textLines[2]));
             for (int j = 0; j < listOfLevels[i].rozmiarY; j++)
             {
@@ -256,16 +260,53 @@ public class Player
     public void treasure() { score++; }
     
 }
+
+public class Controller
+{
+    private SaveManager manager;
+    private MapEngine engine;
+    private Player player;
+    
+    public Controller (SaveManager manager, MapEngine engine, Player player)
+    {
+        this.manager = manager;
+        this.engine = engine;
+        this.player = player;
+    }
+    public void startGame()
+    {
+        manager.loadFiles();
+        while (true)
+        {
+            Console.WriteLine("Nowa Gra czy Wczytaj Grę?");
+            string odpowiedz = Console.ReadLine();
+            if (odpowiedz == "Nowa")
+            {
+                engine.newLevel(manager.newGame());
+                player = new Player(5, 0);
+                player.position = new C(engine.searchPlayer());
+                break;
+            }
+            else if (odpowiedz == "Wczytaj")
+            {
+                engine.newLevel(manager.loadGame());
+                player = new Player(manager.loadPlayerHealth(), manager.loadPlayerScore());
+                player.position = new C(engine.searchPlayer());
+                break;
+            }
+        }
+    }
+}
 class Man
 {
     public static void Main()
     {
-        
-        Console.WriteLine("Poczatek Kodu");
         SaveManager manager = new SaveManager();
         MapEngine engine = new MapEngine();
-        Player player = new Player (-1,-1);   
-        manager.loadFiles();
+        Player player = new Player(-1, -1);
+        Controller controller = new Controller(manager,engine,player);
+        controller.startGame();
+       
         while (true)
         {
             Console.WriteLine("Nowa Gra czy Wczytaj Grę?");

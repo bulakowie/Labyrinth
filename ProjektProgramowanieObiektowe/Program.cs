@@ -30,9 +30,6 @@ public class SaveManager
         {
             string s = "level" + i.ToString() + ".txt";
             string folderPath = AppDomain.CurrentDomain.BaseDirectory;
-            Console.WriteLine(folderPath);
-            Console.WriteLine(folderPath);
-            Console.WriteLine(folderPath);
             string[] textLines = File.ReadAllLines(folderPath + s);
             listOfLevels[i] = new Level(Int32.Parse(textLines[0]), Int32.Parse(textLines[1]), Int32.Parse(textLines[2]));
             for (int j = 0; j < listOfLevels[i].rozmiarY; j++)
@@ -161,38 +158,31 @@ public class MapEngine
             case 'd':
                 {
                     expectedPosition = new C(position.x, position.y+1);
-                    if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-                    if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
-                    else return false;   
+                    
                     break;
                 }
             case 'g':
                 {
                     expectedPosition = new C(position.x, position.y -1 );
-                    if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-                    if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
-                    else return false;
+                    
                     break;
                 }
             case 'l':
                 {
                     expectedPosition = new C(position.x-1, position.y);
-                    if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-                    if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
-                    else return false;
+                    
                     break;
                 }
             case 'p':
                 {
                     expectedPosition = new C(position.x+1, position.y);
-                    if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
-                    if (map.level_layout[expectedPosition.x, expectedPosition.y] != 1) return true;
-                    else return false;
+                   
                     break;
                 }
-
-
         }
+        if (expectedPosition.x < 0 || expectedPosition.y < 0 || expectedPosition.x >= map.rozmiarX || expectedPosition.y >= map.rozmiarY) return false;
+        if (map.level_layout[expectedPosition.x, expectedPosition.y] == 0 || map.level_layout[expectedPosition.x, expectedPosition.y] == 2 || map.level_layout[expectedPosition.x, expectedPosition.y] == 6) return true;
+        else return false;
         return true;
     }
     public void playerMove(C position, char direction) //tutaj tez beda wszystkie sprawdzacze czy dzieja sie jakies edekty specjalne zrobie to niedlugo xoxo
@@ -266,7 +256,7 @@ public class Controller
     private SaveManager manager;
     private MapEngine engine;
     private Player player;
-    
+    private int guard;
     public Controller (SaveManager manager, MapEngine engine, Player player)
     {
         this.manager = manager;
@@ -296,40 +286,11 @@ public class Controller
             }
         }
     }
-}
-class Man
-{
-    public static void Main()
+    public void gamingTime()
     {
-        SaveManager manager = new SaveManager();
-        MapEngine engine = new MapEngine();
-        Player player = new Player(-1, -1);
-        Controller controller = new Controller(manager,engine,player);
-        controller.startGame();
-       
-        while (true)
-        {
-            Console.WriteLine("Nowa Gra czy Wczytaj Grę?");
-            string odpowiedz = Console.ReadLine();
-            if (odpowiedz == "Nowa")
-            {
-                engine.newLevel(manager.newGame());
-                player = new Player(5, 0);
-                player.position = new C(engine.searchPlayer());
-                break;
-            }
-            else if (odpowiedz == "Wczytaj")
-            {
-                engine.newLevel(manager.loadGame());
-                player = new Player(manager.loadPlayerHealth(), manager.loadPlayerScore());
-                player.position = new C(engine.searchPlayer());
-                break;
-            }
-        }
-        Console.Clear();
         while (player.isAlive())
         {
-
+            
             engine.printMap();
             player.printStats();
             string input = Console.ReadLine();
@@ -342,8 +303,10 @@ class Man
                         if (engine.isMoveLegal(player.getPosition(), 'g'))
                         {
                             engine.playerMove(player.getPosition(), 'g');
-                            player.position = new C(player.getPosition().x,player.getPosition().y-1);
+                            player.position = new C(player.getPosition().x, player.getPosition().y - 1);
+                            guard = 1;
                         }
+                        else guard = 0;
                         break;
                     }
                 case "s":
@@ -353,7 +316,9 @@ class Man
                         {
                             engine.playerMove(player.getPosition(), 'd');
                             player.position = new C(player.getPosition().x, player.getPosition().y + 1);
+                            guard = 1;
                         }
+                        else guard = 0;
                         break;
                     }
                 case "a":
@@ -362,8 +327,10 @@ class Man
                         if (engine.isMoveLegal(player.getPosition(), 'l'))
                         {
                             engine.playerMove(player.getPosition(), 'l');
-                            player.position = new C(player.getPosition().x-1, player.getPosition().y);
+                            player.position = new C(player.getPosition().x - 1, player.getPosition().y);
+                            guard = 1;
                         }
+                        else guard = 0;
                         break;
                     }
                 case "d":
@@ -372,10 +339,13 @@ class Man
                         if (engine.isMoveLegal(player.getPosition(), 'p'))
                         {
                             engine.playerMove(player.getPosition(), 'p');
-                            player.position = new C(player.getPosition().x +1, player.getPosition().y);
+                            player.position = new C(player.getPosition().x + 1, player.getPosition().y);
+                            guard = 1;
                         }
+                        else guard = 0;
                         break;
                     }
+                default: { guard = 0; break; }
             }
             if (engine.moveTile() == 3)
             {
@@ -384,15 +354,27 @@ class Man
             }
             if (engine.moveTile() == 2)
             {
-                player.damage();
+                if (guard == 1) player.damage();
             }
             if (engine.moveTile() == 6)
             {
-                player.treasure();
+                if (guard ==1) player.treasure();
             }
-
             Console.Clear();
         }
         Console.WriteLine("Koniec gry! Wynik końcowy: " + player.getScore().ToString());
+    }
+}
+class Man
+{
+    public static void Main()
+    {
+        SaveManager manager = new SaveManager();
+        MapEngine engine = new MapEngine();
+        Player player = new Player(-1, -1);
+        Controller controller = new Controller(manager, engine, player);
+        controller.startGame();
+        controller.gamingTime();
+
     }
 }

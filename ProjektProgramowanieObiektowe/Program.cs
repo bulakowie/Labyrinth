@@ -23,7 +23,7 @@ public class Level
 }
 public class SaveManager
 {
-     int numberOfLevels = 2;
+     int numberOfLevels = 3;
     public Level[] listOfLevels;
     public void loadFiles ()
     {
@@ -75,6 +75,11 @@ public class SaveManager
             }
         }
         return listOfLevels[0];
+    }
+    public bool isLastLevel(int n)
+    {
+        if (n == numberOfLevels) return true;
+        else return false;
     }
     public Level nextLevel(int n)
     {
@@ -504,8 +509,18 @@ public class Controller
             }
             if (engine.moveTile() == 3)
             {
-                engine.newLevel(manager.nextLevel(engine.getMap().numerPoziomu));
-                player.position = engine.searchPlayer();
+                if (manager.isLastLevel(engine.getMap().numerPoziomu) == false)
+                {
+                    engine.newLevel(manager.nextLevel(engine.getMap().numerPoziomu));
+                    player.position = engine.searchPlayer();
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("Wielki Sukces! Wynik końcowy: " + player.getScore().ToString());
+                    break;
+                }
+
             }
             if (engine.moveTile() == 5)
             {
@@ -556,7 +571,13 @@ public class Controller
             engine.monsterMove();
             Console.Clear();
         }
-        Console.WriteLine("Koniec gry! Wynik końcowy: " + player.getScore().ToString());
+      
+        if (player.isAlive() == false)
+        {
+            Console.Clear();
+            Console.WriteLine("Koniec gry! Wynik końcowy: " + player.getScore().ToString());
+        }
+
     }
 }
 class Man
@@ -567,9 +588,13 @@ class Man
         MapEngine engine = new MapEngine();
         Player player = new Player(-1, -1);
         Controller controller = new Controller(manager, engine, player);
-        controller.startGame();
-        controller.gamingTime();
+        while (true)
+        {
 
+
+            controller.startGame();
+            controller.gamingTime();
+        }
     }
 }
     

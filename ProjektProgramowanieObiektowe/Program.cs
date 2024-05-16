@@ -204,6 +204,11 @@ public class MapEngine
                     case 9:
                         Console.Write(("P "));
                         break;
+                    default:
+                        if (map.level_layout[j, i] > 199) Console.Write(("\\ "));
+                        else if (map.level_layout[j, i] > 99) Console.Write(("D "));
+                        else Console.Write(("k "));
+                        break;
                 }
                     
             }

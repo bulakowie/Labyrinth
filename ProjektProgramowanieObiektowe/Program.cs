@@ -171,7 +171,41 @@ public class MapEngine
         {
             for (int j = 0; j < map.rozmiarX; j++)
             {
-                Console.Write(map.level_layout[j, i].ToString() + " ");
+                Console.OutputEncoding = System.Text.Encoding.GetEncoding(28591);
+                switch (map.level_layout[j, i])
+                {
+                    case 0:
+                        Console.Write(". ");
+                        break;
+                    case 1:
+                        Console.Write((char)219 + " ");
+                        break;
+                    case 3:
+                        Console.Write((char)150 + " ");
+                        break;
+                    case 4:
+                        Console.Write((char)97 + " ");
+                        break;
+                    case 2:
+                        Console.Write(("x "));
+                        break;
+                    case 5:
+                        Console.Write(("# "));
+                        break;
+                    case 6:
+                        Console.Write(("$ "));
+                        break;
+                    case 7:
+                        Console.Write(("H "));
+                        break;
+                    case 8:
+                        Console.Write(("I "));
+                        break;
+                    case 9:
+                        Console.Write(("P "));
+                        break;
+                }
+                    
             }
             Console.WriteLine();
         }

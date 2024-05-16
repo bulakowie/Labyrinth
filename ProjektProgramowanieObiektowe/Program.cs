@@ -5,6 +5,9 @@ using System.ComponentModel.Design;
 using static System.Formats.Asn1.AsnWriter;
 using System.Security.Cryptography.X509Certificates;
 using System.Globalization;
+using System.Reflection.Emit;
+using System.Security.Cryptography;
+
 public class Level
 {
     public int[,] level_layout;
@@ -122,12 +125,13 @@ public class MapEngine
 {
     private Level map;
     private Player player;
-    private MonsterManager monsters;
     private C expectedPosition;
+    private C[] listOfMonsters;
+    private int numberOfMonsters;
     private int movedTile;
     public void newLevel(Level a)
     {
-        int numberOfMonsters = 0;
+        numberOfMonsters = 0;
         this.map = a;
         for ( int i=0; i<map.rozmiarX; i++)
         {
@@ -136,7 +140,22 @@ public class MapEngine
                 if (map.level_layout[i, j] == 5) numberOfMonsters++; 
             }
         }
-        if (numberOfMonsters > 0) { monsters = new MonsterManager(map, numberOfMonsters); }
+        if (numberOfMonsters > 0) 
+        {
+            listOfMonsters = new C[numberOfMonsters];
+            int g = 0;
+            for (int i = 0; i < map.rozmiarX; i++)
+            {
+                for (int j = 0; j < map.rozmiarY; j++)
+                {
+                    if (map.level_layout[i, j] == 5)
+                    {
+                        listOfMonsters[g] = new C(i, j);
+                        g++;
+                    }
+                }
+            }
+        }
     }
     public Level getMap() { return map; }
     public void grabPlayer(Player player) { this.player = player; }
@@ -241,6 +260,47 @@ public class MapEngine
         if (map.level_layout[expectedPosition.x, expectedPosition.y] == 0) return true;
         else return false;
     }
+    public bool isMonsterAttack (C Mposition, C Pposition)
+    {
+        int differencex = Mposition.x - Pposition.x;
+        int differeney =  Mposition.y - Pposition.y;
+        if (differencex==-1 && differeney == 0) return true;
+        if (differencex == 1 && differeney == 0) return true;
+        if (differencex == 0 && differeney == 1) return true;
+        if (differencex == 0 && differeney == -1) return true;
+        return false;
+    }
+    public void monsterMove ()
+    {
+        for (int i=0; i<numberOfMonsters; i++)
+        {
+            if (isMonsterAttack(listOfMonsters[i],player.getPosition()) == true) player.damage();
+            else
+            {
+                
+                bool legality = false;
+               
+                C expectedTile = new C(-1,-1);
+                while (legality == false)
+                {
+                    Random rnd = new Random();
+                    int direction = rnd.Next(1, 5);
+                    switch (direction)
+                    {
+                        case 1: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'g'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y-1); break;
+                        case 2: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'd'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y+1); break;
+                        case 3: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'p'); expectedTile = new C(listOfMonsters[i].x+1, listOfMonsters[i].y); break;
+                        case 4: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'l'); expectedTile = new C(listOfMonsters[i].x-1, listOfMonsters[i].y); break;
+                    }
+                }
+                map.level_layout[expectedTile.x, expectedTile.y] = 5;
+                map.level_layout[listOfMonsters[i].x, listOfMonsters[i].y] = 0;
+                listOfMonsters[i] = new C(expectedTile.x, expectedTile.y);
+                
+
+            }
+        }
+    }
     public void playerMove(C position, char direction) 
     {
         switch (direction)
@@ -278,31 +338,6 @@ public class MapEngine
         return movedTile;
     }
 
-}
-public class MonsterManager
-{
-    private C[] listOfMonsters; 
-    private int numberOfMonsters;
-    public MonsterManager (Level level,int n)
-    {
-        listOfMonsters = new C[n];
-        numberOfMonsters = n;
-        int g = 0;
-        for (int i = 0; i < level.rozmiarX; i++)
-        {
-            for (int j = 0; j < level.rozmiarY; j++)
-            {
-                if (level.level_layout[i, j] == 5)
-                {
-                    listOfMonsters[g] = new C(i, j);
-                    g++;
-                }
-            }
-        }
-        Console.WriteLine(listOfMonsters[0].x + " " + listOfMonsters[0].y);
-        Console.ReadLine();
-    }
-    
 }
 public class Player
 {
@@ -518,6 +553,7 @@ public class Controller
                     player.collectKey(engine.moveTile());
                 }
             }
+            engine.monsterMove();
             Console.Clear();
         }
         Console.WriteLine("Koniec gry! Wynik końcowy: " + player.getScore().ToString());

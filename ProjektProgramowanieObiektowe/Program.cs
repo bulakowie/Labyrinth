@@ -23,7 +23,8 @@ public class Level
 }
 public class SaveManager
 {
-     int numberOfLevels = 3;
+    int numberOfLevels;
+    public SaveManager(int n) { numberOfLevels = n; }
     public Level[] listOfLevels;
     public void loadFiles ()
     {
@@ -41,21 +42,6 @@ public class SaveManager
                     listOfLevels[i].level_layout[k, j] = Int32.Parse(textLines[3 + k + ((j) * listOfLevels[i].rozmiarX)]);
                 }
             }
-        }
-    }
-    public void mapTest ()
-    {
-        for (int allLevels = 0; allLevels <= numberOfLevels; allLevels++)
-        {
-            for (int i = 0; i < listOfLevels[allLevels].rozmiarY; i++)
-            {
-                for (int j = 0; j < listOfLevels[allLevels].rozmiarX; j++)
-                {
-                    Console.Write(listOfLevels[allLevels].level_layout[j, i].ToString() + " ");
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
         }
     }
     public Level newGame()
@@ -126,7 +112,7 @@ public class C
     }
     public C(C c) { this.x = c.x; this.y = c.y; }
  }
-public class MapEngine
+public class MapEngine  
 {
     private Level map;
     private Player player;
@@ -447,8 +433,7 @@ public class Controller
     private SaveManager manager;
     private MapEngine engine;
     private Player player;
-    private int guard;
-    private int potionTimer;
+   
     public Controller (SaveManager manager, MapEngine engine, Player player)
     {
         this.manager = manager;
@@ -458,6 +443,7 @@ public class Controller
     public void startGame()
     {
         manager.loadFiles();
+         
         while (true)
         {
             Console.WriteLine("Nowa Gra czy Wczytaj Grę?");
@@ -482,6 +468,8 @@ public class Controller
     }
     public void gamingTime()
     {
+        int guard =0;
+        int potionTimer = 0;
         while (player.isAlive())
         {
             if (potionTimer > 0) potionTimer--;
@@ -623,7 +611,7 @@ class Man
 {
     public static void Main()
     {
-        SaveManager manager = new SaveManager();
+        SaveManager manager = new SaveManager(3);
         MapEngine engine = new MapEngine();
         Player player = new Player(-1, -1);
         Controller controller = new Controller(manager, engine, player);

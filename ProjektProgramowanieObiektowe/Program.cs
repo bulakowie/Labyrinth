@@ -446,7 +446,9 @@ public class Controller
          
         while (true)
         {
-            Console.WriteLine("Nowa Gra czy Wczytaj Grę?");
+            Console.WriteLine("\"Nowa\" lub \"Wczytaj\"");
+            Console.WriteLine("Ruch: 'w' 'a' 's' 'd'");
+            Console.WriteLine("\"Zapisz\" gre");
             string odpowiedz = Console.ReadLine();
             if (odpowiedz == "Nowa")
             {
@@ -536,12 +538,12 @@ public class Controller
             }
             if (engine.moveTile() == 3)
             {
-                if (manager.isLastLevel(engine.getMap().numerPoziomu) == false)
+                if (manager.isLastLevel(engine.getMap().numerPoziomu) == false && guard ==1)
                 {
                     engine.newLevel(manager.nextLevel(engine.getMap().numerPoziomu));
                     player.position = engine.searchPlayer();
                 }
-                else
+                else if (guard == 1)
                 {
                     Console.Clear();
                     Console.WriteLine("Wielki Sukces! Wynik końcowy: " + player.getScore().ToString());

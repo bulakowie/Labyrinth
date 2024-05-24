@@ -304,29 +304,31 @@ public class MapEngine
     {
         for (int i=0; i<numberOfMonsters; i++)
         {
-            if (isMonsterAttack(listOfMonsters[i],player.getPosition()) == true) player.damage();
+            if (listOfMonsters[i].x == -1) { }
+            else if (isMonsterAttack(listOfMonsters[i], player.getPosition()) == true) player.damage();
             else
             {
-                
+
                 bool legality = false;
-               
-                C expectedTile = new C(-1,-1);
-                while (legality == false)
+                int bugFix = 100;
+                C expectedTile = new C(-1, -1);
+                while (legality == false && bugFix > 0)
                 {
+                    bugFix--;
                     Random rnd = new Random();
                     int direction = rnd.Next(1, 5);
                     switch (direction)
                     {
-                        case 1: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'g'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y-1); break;
-                        case 2: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'd'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y+1); break;
-                        case 3: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'p'); expectedTile = new C(listOfMonsters[i].x+1, listOfMonsters[i].y); break;
-                        case 4: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'l'); expectedTile = new C(listOfMonsters[i].x-1, listOfMonsters[i].y); break;
+                        case 1: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'g'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y - 1); break;
+                        case 2: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'd'); expectedTile = new C(listOfMonsters[i].x, listOfMonsters[i].y + 1); break;
+                        case 3: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'p'); expectedTile = new C(listOfMonsters[i].x + 1, listOfMonsters[i].y); break;
+                        case 4: legality = isMoveLegalMonsterEdition(listOfMonsters[i], 'l'); expectedTile = new C(listOfMonsters[i].x - 1, listOfMonsters[i].y); break;
                     }
                 }
                 map.level_layout[expectedTile.x, expectedTile.y] = 5;
                 map.level_layout[listOfMonsters[i].x, listOfMonsters[i].y] = 0;
                 listOfMonsters[i] = new C(expectedTile.x, expectedTile.y);
-                
+
 
             }
         }
@@ -367,7 +369,19 @@ public class MapEngine
     {
         return movedTile;
     }
-
+    public void killMonster (C position)
+    {
+       
+        for (int i=0; i<numberOfMonsters; i++)
+        {
+           
+            if (position.x == listOfMonsters[i].x && position.y == listOfMonsters[i].y)
+            {
+                
+                listOfMonsters[i] = new C(-1, -1);
+            }
+        }
+    }
 }
 public class Player
 {
@@ -561,6 +575,13 @@ public class Controller
                     player.damage();
                     player.damage();
                 }
+                else if (guard ==1)
+                {
+                    Console.Write("Penis");
+                    Console.ReadLine();
+                    engine.killMonster(player.position);
+                } 
+                    
             }
             if (engine.moveTile() == 2)
             {
@@ -579,7 +600,7 @@ public class Controller
                 if (guard == 1)
                 {
                     player.protectionPotionOn();
-                    potionTimer += 10;
+                    potionTimer += 25;
                 }
             }
             if (engine.moveTile() == 9)
@@ -587,7 +608,7 @@ public class Controller
                 if (guard == 1)
                 {
                     player.powerPotionOn();
-                    potionTimer += 10;
+                    potionTimer += 25;
                 }
             }
             if (engine.moveTile() < 100 && engine.moveTile() > 9)
@@ -613,7 +634,7 @@ class Man
 {
     public static void Main()
     {
-        SaveManager manager = new SaveManager(3);
+        SaveManager manager = new SaveManager(4);
         MapEngine engine = new MapEngine();
         Player player = new Player(-1, -1);
         Controller controller = new Controller(manager, engine, player);
